@@ -1,42 +1,46 @@
-[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![rank](https://make.fun/badge/gta6-cover-art-01/Andy74453533/makefun-gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-[![reward](https://make.fun/badge/gta6-cover-art-01/Andy74453533/makefun-gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-cover-art-01)
-
 # Neon Vice Cover Studio
 
-An offline browser app that turns any photo into GTA 6-style cover art: the iconic multi-panel poster with a Vice City neon-sunset grade, bold poster lettering, and one-click PNG export in the common post sizes. Built for the [make.fun bounty: Make GTA 6 Cover Art](https://make.fun/bounty/gta6-cover-art-01).
+[![make.fun · gta6-cover-art-01](https://make.fun/badge/gta6-cover-art-01.svg)](https://make.fun/bounty/gta6-cover-art-01)
+[![make.fun rank](https://make.fun/badge/gta6-cover-art-01/Andy74453533/makefun-gta6-cover-art/rank.svg)](https://make.fun/bounty/gta6-cover-art-01)
+[![make.fun reward](https://make.fun/badge/gta6-cover-art-01/Andy74453533/makefun-gta6-cover-art/reward.svg)](https://make.fun/bounty/gta6-cover-art-01)
+
+An offline, single-page web app that turns any photo into GTA 6-style cover art: multi-panel poster layouts, Vice City sunset and neon colour grades, bold Bebas Neue title lettering with a Great Vibes script subtitle, and one-click PNG export in the common post sizes. Entry for [gta6-cover-art-01 on make.fun](https://make.fun/bounty/gta6-cover-art-01).
+
+## What it does
+
+- **Any photo**: 5 built-in sample photos, or upload your own from your machine. Photos are read locally and never uploaded anywhere.
+- **Multi-panel layouts**: Hero (one full-bleed photo), Hero + 3, Grid 2×2, Duo Split, Film Strip, and Tilted Stack. Fill several panels with one photo or several — click a panel in the preview to pick it, then drag to reposition and use the zoom/pan sliders to crop each panel.
+- **Colour grades**: Sunset, Neon Nights, Vice Fade, Gold Rush, Noir, and Clean — gradient overlays, saturation, vignette and film grain painted on the canvas.
+- **Caption**: editable title (default `NEON VICE`) and subtitle (default `sunset heist`), drawn as a sunset-gradient title block with a striped sun disc and badge ribbon.
+- **Fast export**: one click exports a PNG at 1920×1080 (cover), 1080×1080 (square) or 1080×1350 (story).
 
 ## Run it
 
 ```sh
 node serve.ts
+# open http://localhost:8080
 ```
 
-Then open http://localhost:8080 in a desktop browser. No build step, no network requests, no upload — your photos never leave the machine.
+No build step, no network at run time: every script, font and sample photo is a file under `app/`. Fonts are Bebas Neue and Great Vibes, both under the SIL Open Font License (texts in `app/fonts/`).
 
-## How it works
+## Hand it in
 
-1. **Photos** — start from the five built-in samples or add your own. Click a panel, then a photo, to place it.
-2. **Layout** — six poster layouts: Four Panel, Hero + Three, Full Bleed, Nine Panel, Tilted Snaps (polaroid prints), and Duo Split.
-3. **Grade** — six sunset / neon grades (Vice Sunset, Neon Night, Golden Hour, Noir, Bubblegum, Teal Coast), each a filter plus a gradient-map overlay.
-4. **Words** — a bold Anton title (sunset-gradient, poster black, or neon pink), a Pacifico script subtitle, and a star heat meter.
-5. **Finish** — film grain, vignette, halftone title block, hot badge ribbon, undo / redo.
-6. **Export** — Square 1080 × 1080, Portrait 1080 × 1350, Wide 1920 × 1080, or all three at once.
+```sh
+mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+```
 
-Drag any panel to crop and position its photo, scroll to zoom, double-click to swap the photo. Progress saves in the browser (localStorage).
+`main.ts` (Node 22, standard library only) copies `app/` and `screenshots/` to the output directory and writes `dossier.json` with the vendored `vendor/makefun-app.ts` library.
 
-## Files
+## Screenshots
 
-- `app/` — the whole app: `index.html`, `style.css`, `src/` (the cover engine on a 2D canvas: `cover.js`, `layouts.js`, `grades.js`, `main.js`, `shots.js`), `fonts/`, `samples/`
-- `main.ts` — the entrypoint the grader runs: copies `app/` and `screenshots/` to `/output` and writes `dossier.json`
-- `serve.ts` — a tiny static server for local tries
-- `shots.json` — the four screenshot scenes
-- `screenshots/` — the cover and the editor at work
+- `1-cover.jpg` — the exported landscape cover
+- `2-editor.jpg` — the editor with a photo loaded
+- `3-cover-square.jpg` — the exported square cover
+- `4-cover-portrait.jpg` — the exported portrait cover
 
-## Credits
+## Originality
 
-- Fonts: [Anton](https://github.com/googlefonts/AntonFont) and [Pacifico](https://github.com/googlefonts/Pacifico), both under the SIL Open Font License (texts in `app/fonts/`).
-- Sample photos: three made for this entry with an image model (`woman.jpg`, `rooftop.jpg`, `neon.jpg`), plus `boulevard.jpg` and `pier.jpg` from the make.fun kit, free to use. No Rockstar Games logo, artwork, or fonts are used anywhere.
+Everything here is original work: no Rockstar Games logo, wordmark, official artwork, character or font is used. The sample photos were made with an image model for this entry.
 
 ## License
 
