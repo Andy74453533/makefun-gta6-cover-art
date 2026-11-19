@@ -1,8 +1,10 @@
-// Neon Vice Cover Studio: the entrypoint the grader runs (Node 22, standard
-// library only). It hands in the app this directory's app/ folder — plain
-// static files a desktop browser loads offline — by copying app/ and
-// screenshots/ beside this file to /output, and writes /output/dossier.json,
-// the summary the judge reads, with the vendored make.fun library.
+// Neon Vice Cover Studio — the hand-in program (Node 22, stdlib only).
+//
+// It copies app/ and screenshots/ from beside this file to /output and
+// writes /output/dossier.json, the summary the judge reads, with the
+// vendored make.fun library. The app itself is plain static files a
+// desktop browser loads offline: app/index.html and its ES modules, no
+// library and no network request.
 //
 // Serve it locally with `node serve.ts`, then open http://localhost:8080.
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
@@ -21,13 +23,13 @@ cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
 if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the
-// bytes; the others refuse an entry the scorer would refuse (more than 4
-// screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of
-// app files, in all, or a path under app/ over 1000 bytes: app/ counts beside
-// /output's own 1000-entry cap, its screenshots/ and dossier.json).
+// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
+// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files in app/ or 48 MiB of app
+// files, in all, or a path under app/ over 1000 bytes: app/ counts beside /output's own 1000-entry cap, its
+// screenshots/ and dossier.json).
+const dossierPath = join(out, 'dossier.json');
 writeFileSync(
-  join(out, 'dossier.json'),
+  dossierPath,
   buildDossier(out, {
     text_max_bytes: 163840,
     screenshots: { max: 4, max_bytes: 262144 },
@@ -37,8 +39,16 @@ writeFileSync(
   }),
 );
 
-// Build log: confirm the hand-in landed — the dossier's size and the shots
-// it carries, so a broken copy is caught here instead of at the gate.
-const dossierBytes = statSync(join(out, 'dossier.json')).size;
-const shots = readdirSync(join(out, 'screenshots')).filter((f) => /\.(png|jpe?g)$/i.test(f));
-console.log(`Neon Vice Cover Studio handed in: dossier.json ${dossierBytes} bytes, ${shots.length} screenshots (${shots.join(', ')})`);
+// The build used to print nothing on success, so a failed copy looked
+// the same as a good one: report what was actually handed in.
+const shotNames = readdirSync(join(out, 'screenshots'))
+  .filter((name) => !name.startsWith('.'))
+  .sort();
+const shotBytes = shotNames.reduce(
+  (sum, name) => sum + statSync(join(out, 'screenshots', name)).size,
+  0,
+);
+console.log(
+  `hand-in written to ${out}: dossier.json ${statSync(dossierPath).size} bytes, ` +
+  `${shotNames.length} screenshots (${shotBytes} bytes): ${shotNames.join(', ')}`,
+);
