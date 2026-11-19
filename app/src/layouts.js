@@ -1,103 +1,106 @@
-// Cover layouts: where each panel sits, as fractions of the panel area.
+// Multi-panel layouts for Neon Vice Cover Studio.
 //
-// The panel area is the cover minus its white outer frame and minus the title
-// band at the bottom. A layout returns one rectangle per slot (x, y, w, h in
-// 0..1 of the panel area); `tilt` additionally gives each slot a rotation in
-// degrees and a polaroid-style white border. Slot count is the number of
-// panels the layout fills; the engine keeps nine panel slots and a layout
-// simply uses its first N.
-//
-//   four  — the classic 2 x 2 grid
-//   hero  — one tall hero panel left, three stacked right
-//   full  — a single full-bleed photo
-//   nine  — the 3 x 3 poster grid
-//   tilt  — three tilted snapshot prints over a sunset backdrop
-//   duo   — two tall halves
-
-export const LAYOUTS = {
-  four: {
-    label: 'Four Panel',
-    slots: 4,
-    rects: () => [
-      { x: 0, y: 0, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0, w: 0.5, h: 0.5 },
-      { x: 0, y: 0.5, w: 0.5, h: 0.5 },
-      { x: 0.5, y: 0.5, w: 0.5, h: 0.5 },
-    ],
-  },
-  hero: {
-    label: 'Hero + Three',
-    slots: 4,
-    // The three right-hand panels are short and wide: a portrait photo's face
-    // cannot be panned into one, so the last slot reuses the second photo
-    // (a landscape) instead of the fourth, with a closer crop.
-    order: [0, 1, 2, 1],
-    sceneTweaks: { 3: { zoom: 1.25, ox: 0.05 } },
-    rects: () => [
-      { x: 0, y: 0, w: 0.56, h: 1 },
-      { x: 0.56, y: 0, w: 0.44, h: 0.34 },
-      { x: 0.56, y: 0.34, w: 0.44, h: 0.33 },
-      { x: 0.56, y: 0.67, w: 0.44, h: 0.33 },
-    ],
-  },
-  full: {
-    label: 'Full Bleed',
-    slots: 1,
-    rects: () => [{ x: 0, y: 0, w: 1, h: 1 }],
-  },
-  nine: {
-    label: 'Nine Panel',
-    slots: 9,
-    rects: () => {
-      const out = [];
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-          out.push({ x: c / 3, y: r / 3, w: 1 / 3, h: 1 / 3 });
-        }
-      }
-      return out;
+// A layout is a function of the cover size (w, h) that returns the panel
+// rectangles, in draw order, as fractions of the cover. Each panel also
+// names which photo slot fills it: slot 0 is the main photo, slots 1..3
+// are the extra photos the user picks per panel. The gutter is drawn as
+// the cover's own frame colour, so panels read as a poster grid.
+export const LAYOUTS = [
+  {
+    id: 'hero',
+    name: 'Hero',
+    blurb: 'One photo, full bleed, title across the bottom.',
+    panels: 1,
+    rects(w, h) {
+      return [{ x: 0, y: 0, w, h, slot: 0 }];
     },
   },
-  tilt: {
-    label: 'Tilted Snaps',
-    slots: 3,
-    polaroid: true,
-    rects: () => [
-      { x: 0.02, y: 0.04, w: 0.32, h: 0.72, rot: -5 },
-      { x: 0.34, y: 0.13, w: 0.32, h: 0.72, rot: 2 },
-      { x: 0.66, y: 0.03, w: 0.32, h: 0.72, rot: 5 },
-    ],
+  {
+    id: 'hero3',
+    name: 'Hero + 3',
+    blurb: 'A big hero panel with three stacked panels beside it.',
+    panels: 4,
+    rects(w, h) {
+      const g = Math.round(w * 0.008);
+      const side = Math.round(w * 0.34);
+      const heroW = w - side - g;
+      const third = Math.round((h - 2 * g) / 3);
+      return [
+        { x: 0, y: 0, w: heroW, h, slot: 0 },
+        { x: heroW + g, y: 0, w: side, h: third, slot: 1 },
+        { x: heroW + g, y: third + g, w: side, h: third, slot: 2 },
+        { x: heroW + g, y: 2 * (third + g), w: side, h: h - 2 * (third + g), slot: 3 },
+      ];
+    },
   },
-  duo: {
-    label: 'Duo Split',
-    slots: 2,
-    rects: () => [
-      { x: 0, y: 0, w: 0.5, h: 1 },
-      { x: 0.5, y: 0, w: 0.5, h: 1 },
-    ],
+  {
+    id: 'grid',
+    name: 'Grid 2 x 2',
+    blurb: 'Four equal panels: one photo four ways, or four photos.',
+    panels: 4,
+    rects(w, h) {
+      const g = Math.round(w * 0.008);
+      const cw = Math.round((w - g) / 2);
+      const ch = Math.round((h - g) / 2);
+      return [
+        { x: 0, y: 0, w: cw, h: ch, slot: 0 },
+        { x: cw + g, y: 0, w: w - cw - g, h: ch, slot: 1 },
+        { x: 0, y: ch + g, w: cw, h: h - ch - g, slot: 2 },
+        { x: cw + g, y: ch + g, w: w - cw - g, h: h - ch - g, slot: 3 },
+      ];
+    },
   },
-};
+  {
+    id: 'duo',
+    name: 'Duo Split',
+    blurb: 'Two tall panels side by side, a face-off poster.',
+    panels: 2,
+    rects(w, h) {
+      const g = Math.round(w * 0.008);
+      const cw = Math.round((w - g) / 2);
+      return [
+        { x: 0, y: 0, w: cw, h, slot: 0 },
+        { x: cw + g, y: 0, w: w - cw - g, h, slot: 1 },
+      ];
+    },
+  },
+  {
+    id: 'strip',
+    name: 'Film Strip',
+    blurb: 'Three upright frames in a row, like a contact sheet.',
+    panels: 3,
+    rects(w, h) {
+      const g = Math.round(w * 0.01);
+      const cw = Math.round((w - 2 * g) / 3);
+      return [
+        { x: 0, y: 0, w: cw, h, slot: 0 },
+        { x: cw + g, y: 0, w: cw, h, slot: 1 },
+        { x: 2 * (cw + g), y: 0, w: w - 2 * (cw + g), h, slot: 2 },
+      ];
+    },
+  },
+  {
+    id: 'tilt',
+    name: 'Tilted Stack',
+    blurb: 'A hero shot with two overlapping snapshots on top.',
+    panels: 3,
+    rects(w, h) {
+      const snapW = Math.round(w * 0.30);
+      const snapH = Math.round(h * 0.42);
+      return [
+        { x: 0, y: 0, w, h, slot: 0 },
+        { x: Math.round(w * 0.06), y: Math.round(h * 0.08), w: snapW, h: snapH, slot: 1 },
+        { x: Math.round(w * 0.62), y: Math.round(h * 0.48), w: snapW, h: snapH, slot: 2 },
+      ];
+    },
+  },
+];
 
-export const LAYOUT_IDS = Object.keys(LAYOUTS);
-
-/** Panel-area geometry for a cover of W x H: frame, title band, panel area. */
-export function coverGeometry(W, H) {
-  const frame = Math.max(8, Math.round(Math.min(W, H) * 0.022));
-  const wide = W / H > 1.3;
-  const band = Math.round(H * (wide ? 0.21 : 0.17));
-  const area = { x: frame, y: frame, w: W - frame * 2, h: H - band - frame };
-  return { frame, band, area, wide };
+export function layoutById(id) {
+  return LAYOUTS.find((l) => l.id === id) ?? LAYOUTS[0];
 }
 
-/** Pixel rectangles for a layout's slots, given the cover size. */
-export function layoutRects(W, H, layoutId) {
-  const { area } = coverGeometry(W, H);
-  const layout = LAYOUTS[layoutId] ?? LAYOUTS.four;
-  return layout.rects().map((r) => ({
-    x: area.x + r.x * area.w,
-    y: area.y + r.y * area.h,
-    w: r.w * area.w,
-    h: r.h * area.h,
-    rot: r.rot ?? 0,
-  }));
+// How many distinct photo slots a layout needs at most.
+export function layoutSlotCount(layout) {
+  return Math.max(...layout.rects(100, 100).map((p) => p.slot)) + 1;
 }
