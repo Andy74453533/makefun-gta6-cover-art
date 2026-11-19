@@ -3,98 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neon Vice Cover Studio — GTA 6-style cover maker</title>
-<link rel="icon" href="data:,">
+<title>Neon Vice Cover Studio — GTA-style cover maker</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <header class="topbar">
-  <div>
-    <h1>Neon Vice <span>Cover Studio</span></h1>
-    <p>Turn any photo into GTA 6-style cover art — multi-panel poster, neon-sunset grade, one-click PNG export. Everything runs offline in this page; your photos never leave the machine.</p>
+  <div class="brand">
+    <span class="brand-mark">NV</span>
+    <div>
+      <h1>Neon Vice Cover Studio</h1>
+      <p>Turn any photo into GTA-style cover art. Offline — your photos never leave this machine.</p>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="export" type="button" class="export-btn">Export PNG</button>
   </div>
 </header>
-<main class="app">
-  <section class="controls" aria-label="Cover controls">
-    <div class="group">
-      <h2>1 · Photos</h2>
-      <label class="upload">Add your photos
-        <input id="photoUpload" type="file" accept="image/*" multiple>
-      </label>
-      <div id="photoStrip" class="strip" aria-label="Photos to place"></div>
-      <p class="hint">Click a panel, then a photo, to place it. Drag a panel to crop, scroll to zoom, double-click to swap the photo.</p>
-      <div class="row">
-        <button id="cycleBtn" type="button">Next photo ↻</button>
-        <button id="shuffleBtn" type="button">Shuffle panels</button>
-      </div>
-    </div>
 
-    <div class="group">
+<main class="studio">
+  <section class="preview-pane">
+    <canvas id="preview" width="1280" height="720" aria-label="Live cover preview"></canvas>
+    <canvas id="stage" width="1280" height="720" hidden aria-label="Screenshot stage"></canvas>
+    <p class="hint">Drag the preview to reposition the photo in a panel. Click a panel first to pick it.</p>
+    <p id="status" role="status"></p>
+  </section>
+
+  <aside class="controls">
+    <section class="group">
+      <h2>1 · Photo</h2>
+      <div id="samples" class="samples" aria-label="Sample photos"></div>
+      <label class="upload-label">Or upload your own
+        <input id="upload" type="file" accept="image/*">
+      </label>
+      <div class="row-label">Crop the photo in</div>
+      <div id="slots" class="chip-row" aria-label="Panel to crop"></div>
+      <label class="slider">Zoom
+        <input id="zoom" type="range" min="1" max="2.5" step="0.05" value="1">
+      </label>
+      <label class="slider">Pan left / right
+        <input id="panx" type="range" min="-1" max="1" step="0.05" value="0">
+      </label>
+      <label class="slider">Pan up / down
+        <input id="pany" type="range" min="-1" max="1" step="0.05" value="0">
+      </label>
+    </section>
+
+    <section class="group">
       <h2>2 · Layout</h2>
-      <div id="layoutBtns" class="picks"></div>
-    </div>
+      <div id="layouts" class="chip-row wrap" aria-label="Panel layouts"></div>
+      <p id="layout-blurb" class="blurb"></p>
+    </section>
 
-    <div class="group">
+    <section class="group">
       <h2>3 · Grade</h2>
-      <div id="gradeBtns" class="picks"></div>
-    </div>
+      <div id="grades" class="chip-row wrap" aria-label="Colour grades"></div>
+      <p id="grade-blurb" class="blurb"></p>
+    </section>
 
-    <div class="group">
-      <h2>4 · Words</h2>
-      <label>Title <input id="titleInput" type="text" maxlength="24" value="NEON VICE"></label>
-      <label>Subtitle <input id="subtitleInput" type="text" maxlength="40" value="sunset heist"></label>
-      <label>Title style
-        <select id="titleStyleSelect">
-          <option value="gradient">Sunset gradient</option>
-          <option value="ink">Poster black</option>
-          <option value="neon">Neon pink</option>
-        </select>
+    <section class="group">
+      <h2>4 · Caption</h2>
+      <label class="field">Title
+        <input id="title" type="text" maxlength="24" value="NEON VICE">
       </label>
-      <label>Heat
-        <select id="starsSelect">
-          <option value="5">★★★★★</option>
-          <option value="4" selected>★★★★☆</option>
-          <option value="3">★★★☆☆</option>
-          <option value="2">★★☆☆☆</option>
-          <option value="1">★☆☆☆☆</option>
-          <option value="0">☆☆☆☆☆</option>
-        </select>
+      <label class="field">Subtitle
+        <input id="subtitle" type="text" maxlength="40" value="sunset heist">
       </label>
-    </div>
+    </section>
 
-    <div class="group">
-      <h2>5 · Finish</h2>
-      <label class="check"><input id="grainToggle" type="checkbox" checked> Film grain</label>
-      <label class="check"><input id="vignetteToggle" type="checkbox" checked> Vignette</label>
-      <label class="check"><input id="halftoneToggle" type="checkbox" checked> Halftone title block</label>
-      <label class="check"><input id="badgeToggle" type="checkbox" checked> Hot badge ribbon</label>
-      <div class="row">
-        <button id="undoBtn" type="button">Undo</button>
-        <button id="redoBtn" type="button">Redo</button>
-        <button id="resetBtn" type="button">Reset</button>
-      </div>
-    </div>
-
-    <div class="group">
-      <h2>6 · Export PNG</h2>
-      <label>Preview size
-        <span id="sizeBtns" class="picks"></span>
-      </label>
-      <div class="exports">
-        <button id="exportSquare" type="button">Square · 1080 × 1080</button>
-        <button id="exportPortrait" type="button">Portrait · 1080 × 1350</button>
-        <button id="exportWide" type="button">Wide · 1920 × 1080</button>
-        <button id="exportAll" type="button" class="primary">Export all three</button>
-      </div>
-      <p id="status" role="status"></p>
-    </div>
-  </section>
-
-  <section class="stage" aria-label="Cover preview">
-    <canvas id="coverCanvas" width="960" height="960" aria-label="The cover"></canvas>
-    <p class="hint">Live preview — what you see is the PNG. Click a panel to select it.</p>
-  </section>
+    <section class="group">
+      <h2>5 · Export size</h2>
+      <div id="sizes" class="chip-row wrap" aria-label="Export sizes"></div>
+      <p class="blurb">Exports a PNG at the size above — cover, square or story.</p>
+    </section>
+  </aside>
 </main>
+
+<footer class="foot">
+  <p>Neon Vice Cover Studio — an original cover maker. No Rockstar Games logo, artwork or font is used; lettering is Bebas Neue and Great Vibes under the SIL Open Font License.</p>
+</footer>
+
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
